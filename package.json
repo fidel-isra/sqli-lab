@@ -1,0 +1,27 @@
+{
+  "name": "sqli-practica",
+  "version": "1.0.0",
+  "description": "Entorno educativo vulnerable a SQL Injection — SOLO PARA USO LOCAL",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "keywords": [
+    "sqli",
+    "educativo",
+    "seguridad",
+    "express",
+    "mysql"
+  ],
+  "author": "Práctica de Seguridad",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "express": "^4.22.3",
+    "mysql2": "^3.24.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
