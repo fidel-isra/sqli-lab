@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Buscar — SQLi Lab</title>
+  <link rel="stylesheet" href="/style.css"/>
+</head>
+<body>
+<nav>
+  <a href="/" class="logo">🔓 SQLi Lab</a>
+  <a href="/pagina/login">Login</a>
+  <a href="/pagina/noticias">Noticias</a>
+  <a href="/pagina/productos">Productos</a>
+  <a href="/pagina/buscar" class="active">Buscar</a>
+  <a href="/pagina/perfil">Perfil</a>
+  <span class="badge-vuln">⚠ Entorno Vulnerable</span>
+</nav>
+
+<div class="container">
+  <div class="page-header">
+    <h1>🔍 Buscador de Productos</h1>
+    <p>Vulnerabilidad: <strong style="color:#ff6b6b">Blind Boolean + Time-based SQLi</strong> — parámetro <code>q</code></p>
+  </div>
+
+  <form id="searchForm" class="search-form">
+    <input type="text" id="q" placeholder="Buscar producto... o inyectar payload" value="laptop" autocomplete="off"/>
+    <button type="submit">Buscar</button>
+  </form>
+
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:2rem;">
+    <span style="font-size:.8rem;color:var(--muted);align-self:center;">Payloads:</span>
+    <button onclick="buscar(\"laptop' AND 1=1 --\")" class="chip" style="cursor:pointer;border:none;background:rgba(46,204,113,.1);color:#2ecc71;">Boolean TRUE (devuelve resultados)</button>
+    <button onclick="buscar(\"laptop' AND 1=2 --\")" class="chip" style="cursor:pointer;border:none;background:rgba(230,57,70,.1);color:var(--accent2);">Boolean FALSE (devuelve vacio)</button>
+    <button onclick="buscar(\"laptop' AND SLEEP(3) --\")" class="chip" style="cursor:pointer;border:none;background:rgba(255,193,7,.1);color:#ffc107;">Time-based SLEEP(3s)</button>
+  </div>
+
+  <div id="indicator" style="display:none;text-align:center;padding:2rem;color:var(--muted);">
+    <div style="font-size:2rem;margin-bottom:.5rem;">⏳</div>
+    Esperando respuesta del servidor...
+  </div>
+
+  <div id="resultado"></div>
+</div>
+
+<script>
+let startTime;
+
+document.getElementById('searchForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  buscar(document.getElementById('q').value);
+});
+
+function buscar(val) {
+  if (val !== undefined) document.getElementById('q').value = val;
+  const q = document.getElementById('q').value;
+  startTime = Date.now();
+  document.getElementById('indicator').style.display = 'block';
+  document.getElementById('resultado').innerHTML = '';
+
+  fetch('/buscar?q=' + encodeURIComponent(q))
+    .then(r => r.json())
+    .then(data => {
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+      document.getElementById('indicator').style.display = 'none';
+      const div = document.getElementById('resultado');
+
+      const statusColor = data.encontrados ? '#2ecc71' : '#ff6b6b';
+      const statusText  = data.encontrados ? 'TRUE — Condición verdadera' : 'FALSE — Condición falsa / vacío';
+
+      let rows = '';
+      if (data.resultados && data.resultados.length > 0) {
+        rows = `<div class="table-wrap" style="margin-bottom:1rem;">
+          <table>
+            <thead><tr><th>ID</th><th>Nombre</th><th>Precio</th></tr></thead>
+            <tbody>
+              ${data.resultados.map(r => `<tr><td>${r.id}</td><td>${r.nombre}</td><td class="price">$${r.precio}</td></tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`;
+      }
+
+      div.innerHTML = `
+        <div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap;">
+          <div class="card" style="flex:1;min-width:150px;text-align:center;">
+            <div style="font-size:1.5rem;font-weight:700;color:${statusColor}">${data.encontrados ? 'TRUE' : 'FALSE'}</div>
+            <div style="font-size:.8rem;color:var(--muted);margin-top:.3rem;">${statusText}</div>
+          </div>
+          <div class="card" style="flex:1;min-width:150px;text-align:center;">
+            <div style="font-size:1.5rem;font-weight:700;color:var(--accent2)">${elapsed}s</div>
+            <div style="font-size:.8rem;color:var(--muted);margin-top:.3rem;">Tiempo de respuesta</div>
+          </div>
+          <div class="card" style="flex:1;min-width:150px;text-align:center;">
+            <div style="font-size:1.5rem;font-weight:700;">${data.total}</div>
+            <div style="font-size:.8rem;color:var(--muted);margin-top:.3rem;">Resultados encontrados</div>
+          </div>
+        </div>
+        ${rows}
+        <div class="result-box">
+          <div class="result-header">SQL ejecutado</div>
+          <pre>${data.sql_ejecutado}</pre>
+        </div>`;
+    });
+}
+
+buscar();
+</script>
+</body>
+</html>

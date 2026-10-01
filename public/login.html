@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login — SQLi Lab</title>
+  <link rel="stylesheet" href="/style.css"/>
+</head>
+<body>
+<nav>
+  <a href="/" class="logo">🔓 SQLi Lab</a>
+  <a href="/pagina/login" class="active">Login</a>
+  <a href="/pagina/noticias">Noticias</a>
+  <a href="/pagina/productos">Productos</a>
+  <a href="/pagina/buscar">Buscar</a>
+  <a href="/pagina/perfil">Perfil</a>
+  <span class="badge-vuln">⚠ Entorno Vulnerable</span>
+</nav>
+
+<div class="container" style="padding-top:3rem;">
+  <div class="form-card">
+    <h2>Iniciar Sesión</h2>
+    <p class="subtitle">Vulnerabilidad: <strong style="color:#ff6b6b">Authentication Bypass</strong><br>
+    Prueba con: <code>' OR '1'='1' --</code> en el usuario</p>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="username">Usuario</label>
+        <input type="text" id="username" name="username" placeholder="Ej: admin' OR '1'='1' --" autocomplete="off"/>
+      </div>
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <input type="password" id="password" name="password" placeholder="Cualquier valor"/>
+      </div>
+      <button type="submit" class="btn">Entrar</button>
+      <button type="button" class="btn btn-outline" onclick="fillBypass()">Autocompletar Bypass</button>
+    </form>
+
+    <div id="result" style="display:none;"></div>
+  </div>
+</div>
+
+<script>
+function fillBypass() {
+  document.getElementById('username').value = "admin' OR '1'='1' --";
+  document.getElementById('password').value = 'cualquiera';
+}
+
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+
+  const res = await fetch('/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  });
+  const data = await res.json();
+  const box = document.getElementById('result');
+  box.style.display = 'block';
+  const ok = res.ok && data.status === 'ok';
+  box.innerHTML = `
+    <div class="result-box ${ok ? 'success' : 'error'}">
+      <div class="result-header">${ok ? '✅ Login exitoso — Bypass logrado' : '❌ ' + (data.mensaje || data.error)}</div>
+      <pre>${JSON.stringify(data, null, 2)}</pre>
+    </div>`;
+});
+</script>
+</body>
+</html>

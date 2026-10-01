@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SQLi Lab — Inicio</title>
+  <link rel="stylesheet" href="/style.css"/>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">🔓 SQLi Lab</a>
+  <a href="/pagina/login" id="nav-login">Login</a>
+  <a href="/pagina/noticias" id="nav-noticias">Noticias</a>
+  <a href="/pagina/productos" id="nav-productos">Productos</a>
+  <a href="/pagina/buscar" id="nav-buscar">Buscar</a>
+  <a href="/pagina/perfil" id="nav-perfil">Perfil</a>
+  <span class="badge-vuln">⚠ Entorno Vulnerable</span>
+</nav>
+
+<div class="hero">
+  <h1>Bienvenido al <span>SQLi Lab</span></h1>
+  <p>Plataforma educativa para practicar técnicas de SQL Injection en un entorno seguro y controlado. Cada sección tiene una vulnerabilidad diferente.</p>
+  <div class="warning-banner">⚠ Solo uso educativo — No usar en producción</div>
+</div>
+
+<div class="container-wide" style="margin-top:2.5rem;">
+  <div class="grid">
+
+    <div class="card">
+      <span class="tag">Authentication Bypass</span>
+      <h3>🔑 Login Vulnerable</h3>
+      <p>El formulario de login es vulnerable a bypass con <code>' OR '1'='1' --</code>. Entra como admin sin contraseña.</p>
+      <a href="/pagina/login">Ir al Login →</a>
+    </div>
+
+    <div class="card">
+      <span class="tag">UNION-based SQLi</span>
+      <h3>📰 Noticias</h3>
+      <p>El parámetro <code>id</code> es vulnerable a UNION-based SQLi. Extrae datos de otras tablas con <code>UNION SELECT</code>.</p>
+      <a href="/pagina/noticias">Ver Noticias →</a>
+    </div>
+
+    <div class="card">
+      <span class="tag">Error-based SQLi</span>
+      <h3>🛍️ Productos</h3>
+      <p>La categoría es vulnerable a Error-based SQLi. Extrae datos a través de los mensajes de error de MySQL.</p>
+      <a href="/pagina/productos">Ver Productos →</a>
+    </div>
+
+    <div class="card">
+      <span class="tag">Blind SQLi</span>
+      <h3>🔍 Buscador</h3>
+      <p>El buscador es vulnerable a Blind Boolean y Time-based SQLi. Infiere datos bit a bit sin output directo.</p>
+      <a href="/pagina/buscar">Ir al Buscador →</a>
+    </div>
+
+    <div class="card">
+      <span class="tag">Data Exposure</span>
+      <h3>👤 Perfiles</h3>
+      <p>Muestra datos sensibles sin autenticación: tokens secretos, direcciones, teléfonos de todos los usuarios.</p>
+      <a href="/pagina/perfil">Ver Perfiles →</a>
+    </div>
+
+    <div class="card">
+      <span class="tag">Herramienta</span>
+      <h3>🤖 sqlmap</h3>
+      <p>Usa sqlmap desde Linux apuntando a <code>192.168.1.17:3000</code> para explotar todas las vulnerabilidades automáticamente.</p>
+      <a href="/pagina/sqlmap">Ver comandos →</a>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

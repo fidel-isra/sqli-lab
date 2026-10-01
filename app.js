@@ -6,6 +6,7 @@
 require('dotenv').config();
 const express = require('express');
 const mysql   = require('mysql2');
+const path    = require('path');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -13,6 +14,9 @@ const PORT = process.env.PORT || 3000;
 // ── Middleware ────────────────────────────────────────────────
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Servir archivos estáticos (HTML, CSS)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Banner de advertencia en cada respuesta
 app.use((req, res, next) => {
@@ -186,21 +190,17 @@ app.get('/perfil', async (req, res) => {
 });
 
 // =============================================================
-//  RUTA EXTRA — GET /
-//  Índice de rutas disponibles
+//  PÁGINAS HTML — sirve los archivos del directorio /public
 // =============================================================
-app.get('/', (req, res) => {
-  res.json({
-    advertencia: '⚠️  ENTORNO VULNERABLE — Solo uso educativo local',
-    rutas: [
-      { metodo: 'POST', ruta: '/login',              vulnerabilidad: 'Authentication Bypass' },
-      { metodo: 'GET',  ruta: '/noticias?id=1',      vulnerabilidad: 'UNION-based SQLi' },
-      { metodo: 'GET',  ruta: '/productos?categoria=electronica', vulnerabilidad: 'Error-based SQLi' },
-      { metodo: 'GET',  ruta: '/buscar?q=laptop',    vulnerabilidad: 'Blind Boolean / Time-based SQLi' },
-      { metodo: 'GET',  ruta: '/perfil?user=admin',  vulnerabilidad: 'Data Exposure + SQLi' },
-    ],
-  });
-});
+app.get('/pagina/login',    (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
+app.get('/pagina/noticias', (req, res) => res.sendFile(path.join(__dirname, 'public', 'noticias.html')));
+app.get('/pagina/productos',(req, res) => res.sendFile(path.join(__dirname, 'public', 'productos.html')));
+app.get('/pagina/buscar',   (req, res) => res.sendFile(path.join(__dirname, 'public', 'buscar.html')));
+app.get('/pagina/perfil',   (req, res) => res.sendFile(path.join(__dirname, 'public', 'perfil.html')));
+app.get('/pagina/sqlmap',   (req, res) => res.sendFile(path.join(__dirname, 'public', 'sqlmap.html')));
+
+// Página de inicio
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 // ── Iniciar servidor ───────────────────────────────────────────
 app.listen(PORT, () => {
